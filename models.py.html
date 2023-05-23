@@ -1,0 +1,126 @@
+<html>
+<head>
+<title>models.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #808080;}
+.s3 { color: #6897bb;}
+.s4 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+models.py</font>
+</center></td></tr></table>
+<pre><span class="s0">from </span><span class="s1">distutils.command.upload </span><span class="s0">import </span><span class="s1">upload</span>
+<span class="s0">from </span><span class="s1">email.policy </span><span class="s0">import </span><span class="s1">default</span>
+<span class="s0">from </span><span class="s1">django.db </span><span class="s0">import </span><span class="s1">models</span>
+<span class="s0">from </span><span class="s1">django.utils </span><span class="s0">import </span><span class="s1">timezone</span>
+<span class="s0">from </span><span class="s1">django.db.models.signals </span><span class="s0">import </span><span class="s1">post_save</span>
+<span class="s0">from </span><span class="s1">django.dispatch </span><span class="s0">import </span><span class="s1">receiver</span>
+
+<span class="s0">from </span><span class="s1">PIL </span><span class="s0">import </span><span class="s1">Image</span>
+<span class="s0">from </span><span class="s1">django.contrib.auth.models </span><span class="s0">import </span><span class="s1">User</span>
+<span class="s0">from </span><span class="s1">django.contrib.auth.base_user </span><span class="s0">import </span><span class="s1">BaseUserManager</span>
+
+
+
+<span class="s2"># Create your models here.</span>
+<span class="s0">class </span><span class="s1">Category(models.Model):</span>
+    <span class="s1">name = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">description = models.TextField(blank=</span><span class="s0">True, </span><span class="s1">null= </span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s1">status = models.CharField(max_length=</span><span class="s3">2</span><span class="s0">, </span><span class="s1">choices=((</span><span class="s4">'1'</span><span class="s0">,</span><span class="s4">'Active'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">(</span><span class="s4">'2'</span><span class="s0">,</span><span class="s4">'Inactive'</span><span class="s1">))</span><span class="s0">, </span><span class="s1">default = </span><span class="s3">1</span><span class="s1">)</span>
+    <span class="s1">delete_flag = models.IntegerField(default = </span><span class="s3">0</span><span class="s1">)</span>
+    <span class="s1">date_added = models.DateTimeField(default = timezone.now)</span>
+    <span class="s1">date_created = models.DateTimeField(auto_now = </span><span class="s0">True</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">verbose_name_plural = </span><span class="s4">&quot;List of Categories&quot;</span>
+
+    <span class="s0">def </span><span class="s1">__str__(self):</span>
+        <span class="s0">return </span><span class="s1">str(</span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">self.name</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s1">)</span>
+
+
+
+<span class="s0">class </span><span class="s1">SubCategory(models.Model):</span>
+    <span class="s1">category = models.ForeignKey(Category</span><span class="s0">, </span><span class="s1">on_delete= models.CASCADE)</span>
+    <span class="s1">name = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">description = models.TextField(blank=</span><span class="s0">True, </span><span class="s1">null= </span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s1">status = models.CharField(max_length=</span><span class="s3">2</span><span class="s0">, </span><span class="s1">choices=((</span><span class="s4">'1'</span><span class="s0">,</span><span class="s4">'Active'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">(</span><span class="s4">'2'</span><span class="s0">,</span><span class="s4">'Inactive'</span><span class="s1">))</span><span class="s0">, </span><span class="s1">default = </span><span class="s3">1</span><span class="s1">)</span>
+    <span class="s1">delete_flag = models.IntegerField(default = </span><span class="s3">0</span><span class="s1">)</span>
+    <span class="s1">date_added = models.DateTimeField(default = timezone.now)</span>
+    <span class="s1">date_created = models.DateTimeField(auto_now = </span><span class="s0">True</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">verbose_name_plural = </span><span class="s4">&quot;List of Categories&quot;</span>
+
+    <span class="s0">def </span><span class="s1">__str__(self):</span>
+        <span class="s0">return </span><span class="s1">str(</span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">self.category</span><span class="s0">} </span><span class="s4">- </span><span class="s0">{</span><span class="s1">self.name</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s1">)</span>
+
+<span class="s0">class </span><span class="s1">Books(models.Model):</span>
+    <span class="s1">sub_category = models.ForeignKey(SubCategory</span><span class="s0">, </span><span class="s1">on_delete= models.CASCADE)</span>
+    <span class="s1">isbn = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">title = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">description = models.TextField(blank=</span><span class="s0">True, </span><span class="s1">null= </span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s1">author = models.TextField(blank=</span><span class="s0">True, </span><span class="s1">null= </span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s1">publisher = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">date_published = models.DateTimeField()</span>
+    <span class="s1">status = models.CharField(max_length=</span><span class="s3">2</span><span class="s0">, </span><span class="s1">choices=((</span><span class="s4">'1'</span><span class="s0">,</span><span class="s4">'Active'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">(</span><span class="s4">'2'</span><span class="s0">,</span><span class="s4">'Inactive'</span><span class="s1">))</span><span class="s0">, </span><span class="s1">default = </span><span class="s3">1</span><span class="s1">)</span>
+    <span class="s1">delete_flag = models.IntegerField(default = </span><span class="s3">0</span><span class="s1">)</span>
+    <span class="s1">date_added = models.DateTimeField(default = timezone.now)</span>
+    <span class="s1">date_created = models.DateTimeField(auto_now = </span><span class="s0">True</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">verbose_name_plural = </span><span class="s4">&quot;List of Books&quot;</span>
+
+    <span class="s0">def </span><span class="s1">__str__(self):</span>
+        <span class="s0">return </span><span class="s1">str(</span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">self.isbn</span><span class="s0">} </span><span class="s4">- </span><span class="s0">{</span><span class="s1">self.title</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s1">)</span>
+
+
+<span class="s0">class </span><span class="s1">Students(models.Model):</span>
+    <span class="s1">code = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">first_name = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">middle_name = models.CharField(max_length=</span><span class="s3">250</span><span class="s0">, </span><span class="s1">blank=</span><span class="s0">True, </span><span class="s1">null= </span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s1">last_name = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">gender = models.CharField(max_length=</span><span class="s3">20</span><span class="s0">, </span><span class="s1">choices=((</span><span class="s4">'Male'</span><span class="s0">,</span><span class="s4">'Male'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">(</span><span class="s4">'Female'</span><span class="s0">,</span><span class="s4">'Female'</span><span class="s1">))</span><span class="s0">, </span><span class="s1">default = </span><span class="s4">'Male'</span><span class="s1">)</span>
+    <span class="s1">contact = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">email = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">address = models.CharField(max_length=</span><span class="s3">250</span><span class="s1">)</span>
+    <span class="s1">department = models.CharField(max_length=</span><span class="s3">250</span><span class="s0">, </span><span class="s1">blank= </span><span class="s0">True, </span><span class="s1">null = </span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s1">course = models.CharField(max_length=</span><span class="s3">250</span><span class="s0">, </span><span class="s1">blank= </span><span class="s0">True, </span><span class="s1">null = </span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s1">status = models.CharField(max_length=</span><span class="s3">2</span><span class="s0">, </span><span class="s1">choices=((</span><span class="s4">'1'</span><span class="s0">,</span><span class="s4">'Active'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">(</span><span class="s4">'2'</span><span class="s0">,</span><span class="s4">'Inactive'</span><span class="s1">))</span><span class="s0">, </span><span class="s1">default = </span><span class="s3">1</span><span class="s1">)</span>
+    <span class="s1">delete_flag = models.IntegerField(default = </span><span class="s3">0</span><span class="s1">)</span>
+    <span class="s1">date_added = models.DateTimeField(default = timezone.now)</span>
+    <span class="s1">date_created = models.DateTimeField(auto_now = </span><span class="s0">True</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">verbose_name_plural = </span><span class="s4">&quot;List of Students&quot;</span>
+
+    <span class="s0">def </span><span class="s1">__str__(self):</span>
+        <span class="s0">return </span><span class="s1">str(</span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">self.code</span><span class="s0">} </span><span class="s4">- </span><span class="s0">{</span><span class="s1">self.first_name</span><span class="s0">}{</span><span class="s4">' '</span><span class="s1">+self.middle_name </span><span class="s0">if not </span><span class="s1">self.middle_name == </span><span class="s4">'' </span><span class="s0">else </span><span class="s4">''</span><span class="s0">} {</span><span class="s1">self.last_name</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">name(self):</span>
+        <span class="s0">return </span><span class="s1">str(</span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">self.first_name</span><span class="s0">}{</span><span class="s4">' '</span><span class="s1">+self.middle_name </span><span class="s0">if not </span><span class="s1">self.middle_name == </span><span class="s4">'' </span><span class="s0">else </span><span class="s4">''</span><span class="s0">} {</span><span class="s1">self.last_name</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s1">)</span>
+
+<span class="s0">class </span><span class="s1">Borrow(models.Model):</span>
+    <span class="s1">student = models.ForeignKey(Students</span><span class="s0">, </span><span class="s1">on_delete= models.CASCADE</span><span class="s0">, </span><span class="s1">related_name=</span><span class="s4">&quot;student_id_fk&quot;</span><span class="s1">)</span>
+    <span class="s1">book = models.ForeignKey(Books</span><span class="s0">, </span><span class="s1">on_delete= models.CASCADE</span><span class="s0">, </span><span class="s1">related_name=</span><span class="s4">&quot;book_id_fk&quot;</span><span class="s1">)</span>
+    <span class="s1">borrowing_date = models.DateField()</span>
+    <span class="s1">return_date = models.DateField()</span>
+    <span class="s1">status = models.CharField(max_length=</span><span class="s3">2</span><span class="s0">, </span><span class="s1">choices=((</span><span class="s4">'1'</span><span class="s0">,</span><span class="s4">'Pending'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">(</span><span class="s4">'2'</span><span class="s0">,</span><span class="s4">'Returned'</span><span class="s1">)</span><span class="s0">,</span><span class="s1">(</span><span class="s4">'3'</span><span class="s0">,</span><span class="s4">'expired'</span><span class="s1">))</span><span class="s0">, </span><span class="s1">default = </span><span class="s3">1</span><span class="s1">)</span>
+    <span class="s1">date_added = models.DateTimeField(default = timezone.now)</span>
+    <span class="s1">date_created = models.DateTimeField(auto_now = </span><span class="s0">True</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">verbose_name_plural = </span><span class="s4">&quot;Borrowing Transactions&quot;</span>
+
+    <span class="s0">def </span><span class="s1">__str__(self):</span>
+        <span class="s0">return </span><span class="s1">str(</span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">self.student.code</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s1">)</span>
+
+</pre>
+</body>
+</html>

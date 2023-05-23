@@ -1,0 +1,670 @@
+<html>
+<head>
+<title>views.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6897bb;}
+.s3 { color: #6a8759;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+views.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">datetime</span>
+<span class="s0">from </span><span class="s1">django.shortcuts </span><span class="s0">import </span><span class="s1">redirect</span><span class="s0">, </span><span class="s1">render</span><span class="s0">, </span><span class="s1">get_object_or_404</span>
+<span class="s0">import </span><span class="s1">json</span>
+<span class="s0">from </span><span class="s1">django.contrib </span><span class="s0">import </span><span class="s1">messages</span>
+<span class="s0">from </span><span class="s1">django.contrib.auth.models </span><span class="s0">import </span><span class="s1">User</span>
+<span class="s0">from </span><span class="s1">django.http </span><span class="s0">import </span><span class="s1">HttpResponse</span>
+<span class="s0">from </span><span class="s1">lmsApp </span><span class="s0">import </span><span class="s1">models</span><span class="s0">, </span><span class="s1">forms</span>
+
+<span class="s0">from </span><span class="s1">django.contrib.auth </span><span class="s0">import </span><span class="s1">authenticate</span><span class="s0">, </span><span class="s1">login</span><span class="s0">, </span><span class="s1">logout</span><span class="s0">, </span><span class="s1">update_session_auth_hash</span>
+<span class="s0">from </span><span class="s1">django.contrib.auth.decorators </span><span class="s0">import </span><span class="s1">login_required</span>
+
+
+
+
+<span class="s0">def </span><span class="s1">context_data(request):</span>
+    <span class="s1">fullpath = request.get_full_path()</span>
+    <span class="s1">abs_uri = request.build_absolute_uri()</span>
+    <span class="s1">abs_uri = abs_uri.split(fullpath)[</span><span class="s2">0</span><span class="s1">]</span>
+    <span class="s1">context = {</span>
+        <span class="s3">'system_host'</span><span class="s1">: abs_uri</span><span class="s0">,</span>
+        <span class="s3">'page_name'</span><span class="s1">: </span><span class="s3">''</span><span class="s0">,</span>
+        <span class="s3">'page_title'</span><span class="s1">: </span><span class="s3">''</span><span class="s0">,</span>
+        <span class="s3">'system_name'</span><span class="s1">: </span><span class="s3">'Library Managament System'</span><span class="s0">,</span>
+        <span class="s3">'topbar'</span><span class="s1">: </span><span class="s0">True,</span>
+        <span class="s3">'footer'</span><span class="s1">: </span><span class="s0">True,</span>
+    <span class="s1">}</span>
+
+    <span class="s0">return </span><span class="s1">context</span>
+
+
+<span class="s0">def </span><span class="s1">userregister(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'topbar'</span><span class="s1">] = </span><span class="s0">False</span>
+    <span class="s1">context[</span><span class="s3">'footer'</span><span class="s1">] = </span><span class="s0">False</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">&quot;User Registration&quot;</span>
+    <span class="s0">if </span><span class="s1">request.user.is_authenticated:</span>
+        <span class="s0">return </span><span class="s1">redirect(</span><span class="s3">&quot;home-page&quot;</span><span class="s1">)</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'register.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s0">def </span><span class="s1">save_register(request):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if not </span><span class="s1">request.method == </span><span class="s3">'POST'</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;No data has been sent on this request&quot;</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">form = forms.SaveUser(request.POST)</span>
+        <span class="s0">if </span><span class="s1">form.is_valid():</span>
+            <span class="s1">form.save()</span>
+            <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Your Account has been created succesfully&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s0">for </span><span class="s1">field </span><span class="s0">in </span><span class="s1">form:</span>
+                <span class="s0">for </span><span class="s1">error </span><span class="s0">in </span><span class="s1">field.errors:</span>
+                    <span class="s0">if </span><span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] != </span><span class="s3">''</span><span class="s1">:</span>
+                        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">'&lt;br /&gt;'</span><span class="s1">)</span>
+                    <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">f&quot;[</span><span class="s0">{</span><span class="s1">field.name</span><span class="s0">}</span><span class="s3">] </span><span class="s0">{</span><span class="s1">error</span><span class="s0">}</span><span class="s3">.&quot;</span><span class="s1">)</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">update_profile(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'Update Profile'</span>
+    <span class="s1">user = User.objects.get(id=request.user.id)</span>
+    <span class="s0">if not </span><span class="s1">request.method == </span><span class="s3">'POST'</span><span class="s1">:</span>
+        <span class="s1">form = forms.UpdateProfile(instance=user)</span>
+        <span class="s1">context[</span><span class="s3">'form'</span><span class="s1">] = form</span>
+        <span class="s1">print(form)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">form = forms.UpdateProfile(request.POST</span><span class="s0">, </span><span class="s1">instance=user)</span>
+        <span class="s0">if </span><span class="s1">form.is_valid():</span>
+            <span class="s1">form.save()</span>
+            <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Profile has been updated&quot;</span><span class="s1">)</span>
+            <span class="s0">return </span><span class="s1">redirect(</span><span class="s3">&quot;profile-page&quot;</span><span class="s1">)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">context[</span><span class="s3">'form'</span><span class="s1">] = form</span>
+
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'manage_profile.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">update_password(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">&quot;Update Password&quot;</span>
+    <span class="s0">if </span><span class="s1">request.method == </span><span class="s3">'POST'</span><span class="s1">:</span>
+        <span class="s1">form = forms.UpdatePasswords(user=request.user</span><span class="s0">, </span><span class="s1">data=request.POST)</span>
+        <span class="s0">if </span><span class="s1">form.is_valid():</span>
+            <span class="s1">form.save()</span>
+            <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Your Account Password has been updated successfully&quot;</span><span class="s1">)</span>
+            <span class="s1">update_session_auth_hash(request</span><span class="s0">, </span><span class="s1">form.user)</span>
+            <span class="s0">return </span><span class="s1">redirect(</span><span class="s3">&quot;profile-page&quot;</span><span class="s1">)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">context[</span><span class="s3">'form'</span><span class="s1">] = form</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">form = forms.UpdatePasswords(request.POST)</span>
+        <span class="s1">context[</span><span class="s3">'form'</span><span class="s1">] = form</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'update_password.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s4"># Create your views here.</span>
+<span class="s0">def </span><span class="s1">login_page(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'topbar'</span><span class="s1">] = </span><span class="s0">False</span>
+    <span class="s1">context[</span><span class="s3">'footer'</span><span class="s1">] = </span><span class="s0">False</span>
+    <span class="s1">context[</span><span class="s3">'page_name'</span><span class="s1">] = </span><span class="s3">'login'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'Login'</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'login.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s0">def </span><span class="s1">login_user(request):</span>
+    <span class="s1">logout(request)</span>
+    <span class="s1">resp = {</span><span class="s3">&quot;status&quot;</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s1">username = </span><span class="s3">''</span>
+    <span class="s1">password = </span><span class="s3">''</span>
+    <span class="s0">if </span><span class="s1">request.POST:</span>
+        <span class="s1">username = request.POST[</span><span class="s3">'username'</span><span class="s1">]</span>
+        <span class="s1">password = request.POST[</span><span class="s3">'password'</span><span class="s1">]</span>
+
+
+        <span class="s1">user = authenticate(username=username</span><span class="s0">, </span><span class="s1">password=password)</span>
+        <span class="s0">if </span><span class="s1">user </span><span class="s0">is not None</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">user.is_active:</span>
+                <span class="s1">login(request</span><span class="s0">, </span><span class="s1">user)</span>
+                <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;Incorrect username or password&quot;</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;Incorrect username or password&quot;</span>
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">'application/json'</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">home(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'home'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'Home'</span>
+    <span class="s1">context[</span><span class="s3">'categories'</span><span class="s1">] = models.Category.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'sub_categories'</span><span class="s1">] = models.SubCategory.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'students'</span><span class="s1">] = models.Students.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'books'</span><span class="s1">] = models.Students.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'pending'</span><span class="s1">] = models.Borrow.objects.filter(status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'pending'</span><span class="s1">] = models.Borrow.objects.filter(status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'transactions'</span><span class="s1">] = models.Borrow.objects.all().count()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'home.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">reader(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'home'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'Home'</span>
+    <span class="s1">context[</span><span class="s3">'categories'</span><span class="s1">] = models.Category.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'sub_categories'</span><span class="s1">] = models.SubCategory.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'books'</span><span class="s1">] = models.Students.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'books'</span><span class="s1">] = models.Students.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'pending'</span><span class="s1">] = models.Borrow.objects.filter(status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'pending'</span><span class="s1">] = models.Borrow.objects.filter(status=</span><span class="s2">1</span><span class="s1">).all().count()</span>
+    <span class="s1">context[</span><span class="s3">'transactions'</span><span class="s1">] = models.Borrow.objects.all().count()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'reader.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+
+<span class="s0">def </span><span class="s1">logout_user(request):</span>
+    <span class="s1">logout(request)</span>
+    <span class="s0">return </span><span class="s1">redirect(</span><span class="s3">'login-page'</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">profile(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'profile'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">&quot;Profile&quot;</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'profile.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">users(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'users'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">&quot;User List&quot;</span>
+    <span class="s1">context[</span><span class="s3">'users'</span><span class="s1">] = User.objects.exclude(pk=request.user.pk).filter(is_superuser=</span><span class="s0">False</span><span class="s1">).all()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'users.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">save_user(request):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">request.method == </span><span class="s3">'POST'</span><span class="s1">:</span>
+        <span class="s1">post = request.POST</span>
+        <span class="s0">if not </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+            <span class="s1">user = User.objects.get(id=post[</span><span class="s3">'id'</span><span class="s1">])</span>
+            <span class="s1">form = forms.UpdateUser(request.POST</span><span class="s0">, </span><span class="s1">instance=user)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">form = forms.SaveUser(request.POST)</span>
+
+        <span class="s0">if </span><span class="s1">form.is_valid():</span>
+            <span class="s1">form.save()</span>
+            <span class="s0">if </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;User has been saved successfully.&quot;</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;User has been updated successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s0">for </span><span class="s1">field </span><span class="s0">in </span><span class="s1">form:</span>
+                <span class="s0">for </span><span class="s1">error </span><span class="s0">in </span><span class="s1">field.errors:</span>
+                    <span class="s0">if not </span><span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">'&lt;br/&gt;'</span><span class="s1">)</span>
+                    <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">f'[</span><span class="s0">{</span><span class="s1">field.name</span><span class="s0">}</span><span class="s3">] </span><span class="s0">{</span><span class="s1">error</span><span class="s0">}</span><span class="s3">'</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;There's no data sent on the request&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">manage_user(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'manage_user'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'Manage User'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'user'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'user'</span><span class="s1">] = User.objects.get(id=pk)</span>
+
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'manage_user.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">delete_user(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">'User ID is invalid'</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">User.objects.filter(pk=pk).delete()</span>
+            <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;User has been deleted successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;Deleting User Failed&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">category(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'category'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">&quot;Category List&quot;</span>
+    <span class="s1">context[</span><span class="s3">'category'</span><span class="s1">] = models.Category.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s1">).all()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'category.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">save_category(request):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">request.method == </span><span class="s3">'POST'</span><span class="s1">:</span>
+        <span class="s1">post = request.POST</span>
+        <span class="s0">if not </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+            <span class="s1">category = models.Category.objects.get(id=post[</span><span class="s3">'id'</span><span class="s1">])</span>
+            <span class="s1">form = forms.SaveCategory(request.POST</span><span class="s0">, </span><span class="s1">instance=category)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">form = forms.SaveCategory(request.POST)</span>
+
+        <span class="s0">if </span><span class="s1">form.is_valid():</span>
+            <span class="s1">form.save()</span>
+            <span class="s0">if </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Category has been saved successfully.&quot;</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Category has been updated successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s0">for </span><span class="s1">field </span><span class="s0">in </span><span class="s1">form:</span>
+                <span class="s0">for </span><span class="s1">error </span><span class="s0">in </span><span class="s1">field.errors:</span>
+                    <span class="s0">if not </span><span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">'&lt;br/&gt;'</span><span class="s1">)</span>
+                    <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">f'[</span><span class="s0">{</span><span class="s1">field.name</span><span class="s0">}</span><span class="s3">] </span><span class="s0">{</span><span class="s1">error</span><span class="s0">}</span><span class="s3">'</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;There's no data sent on the request&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">view_category(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'view_category'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'View Category'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'category'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'category'</span><span class="s1">] = models.Category.objects.get(id=pk)</span>
+
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'view_category.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">manage_category(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'manage_category'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'Manage Category'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'category'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'category'</span><span class="s1">] = models.Category.objects.get(id=pk)</span>
+
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'manage_category.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">delete_category(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">'Category ID is invalid'</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">models.Category.objects.filter(pk=pk).update(delete_flag=</span><span class="s2">1</span><span class="s1">)</span>
+            <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Category has been deleted successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;Deleting Category Failed&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">sub_category(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'sub_category'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">&quot;Sub Category List&quot;</span>
+    <span class="s1">context[</span><span class="s3">'sub_category'</span><span class="s1">] = models.SubCategory.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s1">).all()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'sub_category.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">save_sub_category(request):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">request.method == </span><span class="s3">'POST'</span><span class="s1">:</span>
+        <span class="s1">post = request.POST</span>
+        <span class="s0">if not </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+            <span class="s1">sub_category = models.SubCategory.objects.get(id=post[</span><span class="s3">'id'</span><span class="s1">])</span>
+            <span class="s1">form = forms.SaveSubCategory(request.POST</span><span class="s0">, </span><span class="s1">instance=sub_category)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">form = forms.SaveSubCategory(request.POST)</span>
+
+        <span class="s0">if </span><span class="s1">form.is_valid():</span>
+            <span class="s1">form.save()</span>
+            <span class="s0">if </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Sub Category has been saved successfully.&quot;</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Sub Category has been updated successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s0">for </span><span class="s1">field </span><span class="s0">in </span><span class="s1">form:</span>
+                <span class="s0">for </span><span class="s1">error </span><span class="s0">in </span><span class="s1">field.errors:</span>
+                    <span class="s0">if not </span><span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">'&lt;br/&gt;'</span><span class="s1">)</span>
+                    <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">f'[</span><span class="s0">{</span><span class="s1">field.name</span><span class="s0">}</span><span class="s3">] </span><span class="s0">{</span><span class="s1">error</span><span class="s0">}</span><span class="s3">'</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;There's no data sent on the request&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">view_sub_category(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'view_sub_category'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'View Sub Category'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'sub_category'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'sub_category'</span><span class="s1">] = models.SubCategory.objects.get(id=pk)</span>
+
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'view_sub_category.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">manage_sub_category(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'manage_sub_category'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'Manage Sub Category'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'sub_category'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'sub_category'</span><span class="s1">] = models.SubCategory.objects.get(id=pk)</span>
+    <span class="s1">context[</span><span class="s3">'categories'</span><span class="s1">] = models.Category.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'manage_sub_category.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">delete_sub_category(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">'Sub Category ID is invalid'</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">models.SubCategory.objects.filter(pk=pk).update(delete_flag=</span><span class="s2">1</span><span class="s1">)</span>
+            <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Sub Category has been deleted successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;Deleting Sub Category Failed&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">books(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'book'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">&quot;Book List&quot;</span>
+    <span class="s1">context[</span><span class="s3">'books'</span><span class="s1">] = models.Books.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s1">).all()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'books.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">save_book(request):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">request.method == </span><span class="s3">'POST'</span><span class="s1">:</span>
+        <span class="s1">post = request.POST</span>
+        <span class="s0">if not </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+            <span class="s1">book = models.Books.objects.get(id=post[</span><span class="s3">'id'</span><span class="s1">])</span>
+            <span class="s1">form = forms.SaveBook(request.POST</span><span class="s0">, </span><span class="s1">instance=book)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">form = forms.SaveBook(request.POST)</span>
+
+        <span class="s0">if </span><span class="s1">form.is_valid():</span>
+            <span class="s1">form.save()</span>
+            <span class="s0">if </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Book has been saved successfully.&quot;</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Book has been updated successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s0">for </span><span class="s1">field </span><span class="s0">in </span><span class="s1">form:</span>
+                <span class="s0">for </span><span class="s1">error </span><span class="s0">in </span><span class="s1">field.errors:</span>
+                    <span class="s0">if not </span><span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">'&lt;br/&gt;'</span><span class="s1">)</span>
+                    <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">f'[</span><span class="s0">{</span><span class="s1">field.name</span><span class="s0">}</span><span class="s3">] </span><span class="s0">{</span><span class="s1">error</span><span class="s0">}</span><span class="s3">'</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;There's no data sent on the request&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">view_book(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'view_book'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'View Book'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'book'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'book'</span><span class="s1">] = models.Books.objects.get(id=pk)</span>
+
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'view_book.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">manage_book(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'manage_book'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'Manage Book'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'book'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'book'</span><span class="s1">] = models.Books.objects.get(id=pk)</span>
+    <span class="s1">context[</span><span class="s3">'sub_categories'</span><span class="s1">] = models.SubCategory.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'manage_book.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">delete_book(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">'Book ID is invalid'</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">models.Books.objects.filter(pk=pk).update(delete_flag=</span><span class="s2">1</span><span class="s1">)</span>
+            <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Book has been deleted successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;Deleting Book Failed&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">students(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'student'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">&quot;Student List&quot;</span>
+    <span class="s1">context[</span><span class="s3">'students'</span><span class="s1">] = models.Students.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s1">).all()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'students.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">save_student(request):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">request.method == </span><span class="s3">'POST'</span><span class="s1">:</span>
+        <span class="s1">post = request.POST</span>
+        <span class="s0">if not </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+            <span class="s1">student = models.Students.objects.get(id=post[</span><span class="s3">'id'</span><span class="s1">])</span>
+            <span class="s1">form = forms.SaveStudent(request.POST</span><span class="s0">, </span><span class="s1">instance=student)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">form = forms.SaveStudent(request.POST)</span>
+
+        <span class="s0">if </span><span class="s1">form.is_valid():</span>
+            <span class="s1">form.save()</span>
+            <span class="s0">if </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Student has been saved successfully.&quot;</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Student has been updated successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s0">for </span><span class="s1">field </span><span class="s0">in </span><span class="s1">form:</span>
+                <span class="s0">for </span><span class="s1">error </span><span class="s0">in </span><span class="s1">field.errors:</span>
+                    <span class="s0">if not </span><span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">'&lt;br/&gt;'</span><span class="s1">)</span>
+                    <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">f'[</span><span class="s0">{</span><span class="s1">field.name</span><span class="s0">}</span><span class="s3">] </span><span class="s0">{</span><span class="s1">error</span><span class="s0">}</span><span class="s3">'</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;There's no data sent on the request&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">view_student(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'view_student'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'View Student'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'student'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'student'</span><span class="s1">] = models.Students.objects.get(id=pk)</span>
+
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'view_student.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">manage_student(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'manage_student'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'Manage Student'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'student'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'student'</span><span class="s1">] = models.Students.objects.get(id=pk)</span>
+    <span class="s1">context[</span><span class="s3">'sub_categories'</span><span class="s1">] = models.SubCategory.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'manage_student.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">delete_student(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">'Student ID is invalid'</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">models.Students.objects.filter(pk=pk).update(delete_flag=</span><span class="s2">1</span><span class="s1">)</span>
+            <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Student has been deleted successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;Deleting Student Failed&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">borrows(request):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'borrow'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">&quot;Borrowing Transaction List&quot;</span>
+    <span class="s1">context[</span><span class="s3">'borrows'</span><span class="s1">] = models.Borrow.objects.order_by(</span><span class="s3">'status'</span><span class="s1">).all()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'borrows.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">save_borrow(request):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">request.method == </span><span class="s3">'POST'</span><span class="s1">:</span>
+        <span class="s1">post = request.POST</span>
+        <span class="s0">if not </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+            <span class="s1">borrow = models.Borrow.objects.get(id=post[</span><span class="s3">'id'</span><span class="s1">])</span>
+            <span class="s1">form = forms.SaveBorrow(request.POST</span><span class="s0">, </span><span class="s1">instance=borrow)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">form = forms.SaveBorrow(request.POST)</span>
+
+        <span class="s0">if </span><span class="s1">form.is_valid():</span>
+            <span class="s1">form.save()</span>
+            <span class="s0">if </span><span class="s1">post[</span><span class="s3">'id'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Borrowing Transaction has been saved successfully.&quot;</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Borrowing Transaction has been updated successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s0">for </span><span class="s1">field </span><span class="s0">in </span><span class="s1">form:</span>
+                <span class="s0">for </span><span class="s1">error </span><span class="s0">in </span><span class="s1">field.errors:</span>
+                    <span class="s0">if not </span><span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] == </span><span class="s3">''</span><span class="s1">:</span>
+                        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">'&lt;br/&gt;'</span><span class="s1">)</span>
+                    <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] += str(</span><span class="s3">f'[</span><span class="s0">{</span><span class="s1">field.name</span><span class="s0">}</span><span class="s3">] </span><span class="s0">{</span><span class="s1">error</span><span class="s0">}</span><span class="s3">'</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;There's no data sent on the request&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">view_borrow(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'view_borrow'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'View Transaction Details'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'borrow'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'borrow'</span><span class="s1">] = models.Borrow.objects.get(id=pk)</span>
+
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'view_borrow.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">manage_borrow(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">context = context_data(request)</span>
+    <span class="s1">context[</span><span class="s3">'page'</span><span class="s1">] = </span><span class="s3">'manage_borrow'</span>
+    <span class="s1">context[</span><span class="s3">'page_title'</span><span class="s1">] = </span><span class="s3">'Manage Transaction Details'</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'borrow'</span><span class="s1">] = {}</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">context[</span><span class="s3">'borrow'</span><span class="s1">] = models.Borrow.objects.get(id=pk)</span>
+    <span class="s1">context[</span><span class="s3">'students'</span><span class="s1">] = models.Students.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all()</span>
+    <span class="s1">context[</span><span class="s3">'books'</span><span class="s1">] = models.Books.objects.filter(delete_flag=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">status=</span><span class="s2">1</span><span class="s1">).all()</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s3">'manage_borrow.html'</span><span class="s0">, </span><span class="s1">context)</span>
+
+
+<span class="s1">@login_required</span>
+<span class="s0">def </span><span class="s1">delete_borrow(request</span><span class="s0">, </span><span class="s1">pk=</span><span class="s0">None</span><span class="s1">):</span>
+    <span class="s1">resp = {</span><span class="s3">'status'</span><span class="s1">: </span><span class="s3">'failed'</span><span class="s0">, </span><span class="s3">'msg'</span><span class="s1">: </span><span class="s3">''</span><span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">pk </span><span class="s0">is None</span><span class="s1">:</span>
+        <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">'Transaction ID is invalid'</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">models.Borrow.objects.filter(pk=pk).delete()</span>
+            <span class="s1">messages.success(request</span><span class="s0">, </span><span class="s3">&quot;Transaction has been deleted successfully.&quot;</span><span class="s1">)</span>
+            <span class="s1">resp[</span><span class="s3">'status'</span><span class="s1">] = </span><span class="s3">'success'</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s1">resp[</span><span class="s3">'msg'</span><span class="s1">] = </span><span class="s3">&quot;Deleting Transaction Failed&quot;</span>
+
+    <span class="s0">return </span><span class="s1">HttpResponse(json.dumps(resp)</span><span class="s0">, </span><span class="s1">content_type=</span><span class="s3">&quot;application/json&quot;</span><span class="s1">)</span>
+
+</pre>
+</body>
+</html>

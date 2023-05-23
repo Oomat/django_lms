@@ -1,0 +1,252 @@
+<html>
+<head>
+<title>forms.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6897bb;}
+.s3 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+forms.py</font>
+</center></td></tr></table>
+<pre><span class="s0">from </span><span class="s1">datetime </span><span class="s0">import </span><span class="s1">datetime</span>
+<span class="s0">from </span><span class="s1">random </span><span class="s0">import </span><span class="s1">random</span>
+<span class="s0">from </span><span class="s1">secrets </span><span class="s0">import </span><span class="s1">choice</span>
+<span class="s0">from </span><span class="s1">sys </span><span class="s0">import </span><span class="s1">prefix</span>
+<span class="s0">from </span><span class="s1">unicodedata </span><span class="s0">import </span><span class="s1">category</span>
+<span class="s0">from </span><span class="s1">django </span><span class="s0">import </span><span class="s1">forms</span>
+<span class="s0">from </span><span class="s1">numpy </span><span class="s0">import </span><span class="s1">require</span>
+<span class="s0">from </span><span class="s1">lmsApp </span><span class="s0">import </span><span class="s1">models</span>
+
+<span class="s0">from </span><span class="s1">django.contrib.auth.forms </span><span class="s0">import </span><span class="s1">UserCreationForm</span><span class="s0">,</span><span class="s1">PasswordChangeForm</span><span class="s0">, </span><span class="s1">UserChangeForm</span>
+<span class="s0">from </span><span class="s1">django.contrib.auth.models </span><span class="s0">import </span><span class="s1">User</span>
+<span class="s0">import </span><span class="s1">datetime</span>
+
+<span class="s0">class </span><span class="s1">SaveUser(UserCreationForm):</span>
+    <span class="s1">username = forms.CharField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The Username field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">email = forms.EmailField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The Email field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">first_name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The First Name field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">last_name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The Last Name field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">password1 = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">password2 = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">model = User</span>
+        <span class="s1">fields = (</span><span class="s3">'email'</span><span class="s0">, </span><span class="s3">'username'</span><span class="s0">,</span><span class="s3">'first_name'</span><span class="s0">, </span><span class="s3">'last_name'</span><span class="s0">,</span><span class="s3">'password1'</span><span class="s0">, </span><span class="s3">'password2'</span><span class="s0">,</span><span class="s1">)</span>
+
+<span class="s0">class </span><span class="s1">UpdateProfile(UserChangeForm):</span>
+    <span class="s1">username = forms.CharField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The Username field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">email = forms.EmailField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The Email field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">first_name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The First Name field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">last_name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The Last Name field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">current_password = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">model = User</span>
+        <span class="s1">fields = (</span><span class="s3">'email'</span><span class="s0">, </span><span class="s3">'username'</span><span class="s0">,</span><span class="s3">'first_name'</span><span class="s0">, </span><span class="s3">'last_name'</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_current_password(self):</span>
+        <span class="s0">if not </span><span class="s1">self.instance.check_password(self.cleaned_data[</span><span class="s3">'current_password'</span><span class="s1">]):</span>
+            <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">f&quot;Password is Incorrect&quot;</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_email(self):</span>
+        <span class="s1">email = self.cleaned_data[</span><span class="s3">'email'</span><span class="s1">]</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">user = User.objects.exclude(id=self.cleaned_data[</span><span class="s3">'id'</span><span class="s1">]).get(email = email)</span>
+        <span class="s0">except </span><span class="s1">Exception </span><span class="s0">as </span><span class="s1">e:</span>
+            <span class="s0">return </span><span class="s1">email</span>
+        <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">f&quot;The </span><span class="s0">{</span><span class="s1">user.email</span><span class="s0">} </span><span class="s3">mail is already exists/taken&quot;</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_username(self):</span>
+        <span class="s1">username = self.cleaned_data[</span><span class="s3">'username'</span><span class="s1">]</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">user = User.objects.exclude(id=self.cleaned_data[</span><span class="s3">'id'</span><span class="s1">]).get(username = username)</span>
+        <span class="s0">except </span><span class="s1">Exception </span><span class="s0">as </span><span class="s1">e:</span>
+            <span class="s0">return </span><span class="s1">username</span>
+        <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">f&quot;The </span><span class="s0">{</span><span class="s1">user.username</span><span class="s0">} </span><span class="s3">mail is already exists/taken&quot;</span><span class="s1">)</span>
+
+<span class="s0">class </span><span class="s1">UpdateUser(UserChangeForm):</span>
+    <span class="s1">username = forms.CharField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The Username field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">email = forms.EmailField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The Email field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">first_name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The First Name field is required.&quot;</span><span class="s1">)</span>
+    <span class="s1">last_name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s0">,</span><span class="s1">help_text=</span><span class="s3">&quot;The Last Name field is required.&quot;</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">model = User</span>
+        <span class="s1">fields = (</span><span class="s3">'email'</span><span class="s0">, </span><span class="s3">'username'</span><span class="s0">,</span><span class="s3">'first_name'</span><span class="s0">, </span><span class="s3">'last_name'</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_email(self):</span>
+        <span class="s1">email = self.cleaned_data[</span><span class="s3">'email'</span><span class="s1">]</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">user = User.objects.exclude(id=self.cleaned_data[</span><span class="s3">'id'</span><span class="s1">]).get(email = email)</span>
+        <span class="s0">except </span><span class="s1">Exception </span><span class="s0">as </span><span class="s1">e:</span>
+            <span class="s0">return </span><span class="s1">email</span>
+        <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">f&quot;The </span><span class="s0">{</span><span class="s1">user.email</span><span class="s0">} </span><span class="s3">mail is already exists/taken&quot;</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_username(self):</span>
+        <span class="s1">username = self.cleaned_data[</span><span class="s3">'username'</span><span class="s1">]</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">user = User.objects.exclude(id=self.cleaned_data[</span><span class="s3">'id'</span><span class="s1">]).get(username = username)</span>
+        <span class="s0">except </span><span class="s1">Exception </span><span class="s0">as </span><span class="s1">e:</span>
+            <span class="s0">return </span><span class="s1">username</span>
+        <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">f&quot;The </span><span class="s0">{</span><span class="s1">user.username</span><span class="s0">} </span><span class="s3">mail is already exists/taken&quot;</span><span class="s1">)</span>
+
+<span class="s0">class </span><span class="s1">UpdatePasswords(PasswordChangeForm):</span>
+    <span class="s1">old_password = forms.CharField(widget=forms.PasswordInput(attrs={</span><span class="s3">'class'</span><span class="s1">:</span><span class="s3">'form-control form-control-sm rounded-0'</span><span class="s1">})</span><span class="s0">, </span><span class="s1">label=</span><span class="s3">&quot;Old Password&quot;</span><span class="s1">)</span>
+    <span class="s1">new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={</span><span class="s3">'class'</span><span class="s1">:</span><span class="s3">'form-control form-control-sm rounded-0'</span><span class="s1">})</span><span class="s0">, </span><span class="s1">label=</span><span class="s3">&quot;New Password&quot;</span><span class="s1">)</span>
+    <span class="s1">new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={</span><span class="s3">'class'</span><span class="s1">:</span><span class="s3">'form-control form-control-sm rounded-0'</span><span class="s1">})</span><span class="s0">, </span><span class="s1">label=</span><span class="s3">&quot;Confirm New Password&quot;</span><span class="s1">)</span>
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">model = User</span>
+        <span class="s1">fields = (</span><span class="s3">'old_password'</span><span class="s0">,</span><span class="s3">'new_password1'</span><span class="s0">, </span><span class="s3">'new_password2'</span><span class="s1">)</span>
+
+<span class="s0">class </span><span class="s1">SaveCategory(forms.ModelForm):</span>
+    <span class="s1">name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">description = forms.Textarea()</span>
+    <span class="s1">status = forms.CharField(max_length=</span><span class="s2">2</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">model = models.Category</span>
+        <span class="s1">fields = (</span><span class="s3">'name'</span><span class="s0">, </span><span class="s3">'description'</span><span class="s0">, </span><span class="s3">'status'</span><span class="s0">, </span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_name(self):</span>
+        <span class="s1">id = self.data[</span><span class="s3">'id'</span><span class="s1">] </span><span class="s0">if </span><span class="s1">(self.data[</span><span class="s3">'id'</span><span class="s1">]).isnumeric() </span><span class="s0">else </span><span class="s2">0</span>
+        <span class="s1">name = self.cleaned_data[</span><span class="s3">'name'</span><span class="s1">]</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">id &gt; </span><span class="s2">0</span><span class="s1">:</span>
+                <span class="s1">category = models.Category.objects.exclude(id = id).get(name = name</span><span class="s0">, </span><span class="s1">delete_flag = </span><span class="s2">0</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">category = models.Category.objects.get(name = name</span><span class="s0">, </span><span class="s1">delete_flag = </span><span class="s2">0</span><span class="s1">)</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s0">return </span><span class="s1">name</span>
+        <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">&quot;Category Name already exists.&quot;</span><span class="s1">)</span>
+
+<span class="s0">class </span><span class="s1">SaveSubCategory(forms.ModelForm):</span>
+    <span class="s1">category = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">description = forms.Textarea()</span>
+    <span class="s1">status = forms.CharField(max_length=</span><span class="s2">2</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">model = models.SubCategory</span>
+        <span class="s1">fields = (</span><span class="s3">'category'</span><span class="s0">, </span><span class="s3">'name'</span><span class="s0">, </span><span class="s3">'description'</span><span class="s0">, </span><span class="s3">'status'</span><span class="s0">, </span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_category(self):</span>
+        <span class="s1">cid = int(self.data[</span><span class="s3">'category'</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">(self.data[</span><span class="s3">'category'</span><span class="s1">]).isnumeric() </span><span class="s0">else </span><span class="s2">0</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">category = models.Category.objects.get(id = cid)</span>
+            <span class="s0">return </span><span class="s1">category</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">&quot;Invalid Category.&quot;</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_name(self):</span>
+        <span class="s1">id = int(self.data[</span><span class="s3">'id'</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">(self.data[</span><span class="s3">'id'</span><span class="s1">]).isnumeric() </span><span class="s0">else </span><span class="s2">0</span>
+        <span class="s1">cid = int(self.data[</span><span class="s3">'category'</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">(self.data[</span><span class="s3">'category'</span><span class="s1">]).isnumeric() </span><span class="s0">else </span><span class="s2">0</span>
+        <span class="s1">name = self.cleaned_data[</span><span class="s3">'name'</span><span class="s1">]</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">category = models.Category.objects.get(id = cid)</span>
+            <span class="s0">if </span><span class="s1">id &gt; </span><span class="s2">0</span><span class="s1">:</span>
+                <span class="s1">sub_category = models.SubCategory.objects.exclude(id = id).get(name = name</span><span class="s0">, </span><span class="s1">delete_flag = </span><span class="s2">0</span><span class="s0">, </span><span class="s1">category = category)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">sub_category = models.SubCategory.objects.get(name = name</span><span class="s0">, </span><span class="s1">delete_flag = </span><span class="s2">0</span><span class="s0">, </span><span class="s1">category = category)</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s0">return </span><span class="s1">name</span>
+        <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">&quot;Sub-Category Name already exists on the selected Category.&quot;</span><span class="s1">)</span>
+     
+<span class="s0">class </span><span class="s1">SaveBook(forms.ModelForm):</span>
+    <span class="s1">sub_category = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">isbn = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">title = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">description = forms.Textarea()</span>
+    <span class="s1">author = forms.Textarea()</span>
+    <span class="s1">publisher = forms.Textarea()</span>
+    <span class="s1">date_published = forms.DateField()</span>
+    <span class="s1">status = forms.CharField(max_length=</span><span class="s2">2</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">model = models.Books</span>
+        <span class="s1">fields = (</span><span class="s3">'isbn'</span><span class="s0">, </span><span class="s3">'sub_category'</span><span class="s0">, </span><span class="s3">'title'</span><span class="s0">, </span><span class="s3">'description'</span><span class="s0">, </span><span class="s3">'author'</span><span class="s0">, </span><span class="s3">'publisher'</span><span class="s0">, </span><span class="s3">'date_published'</span><span class="s0">, </span><span class="s3">'status'</span><span class="s0">, </span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_sub_category(self):</span>
+        <span class="s1">scid = int(self.data[</span><span class="s3">'sub_category'</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">(self.data[</span><span class="s3">'sub_category'</span><span class="s1">]).isnumeric() </span><span class="s0">else </span><span class="s2">0</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">sub_category = models.SubCategory.objects.get(id = scid)</span>
+            <span class="s0">return </span><span class="s1">sub_category</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">&quot;Invalid Sub Category.&quot;</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_isbn(self):</span>
+        <span class="s1">id = int(self.data[</span><span class="s3">'id'</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">(self.data[</span><span class="s3">'id'</span><span class="s1">]).isnumeric() </span><span class="s0">else </span><span class="s2">0</span>
+        <span class="s1">isbn = self.cleaned_data[</span><span class="s3">'isbn'</span><span class="s1">]</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">id &gt; </span><span class="s2">0</span><span class="s1">:</span>
+                <span class="s1">book = models.Books.objects.exclude(id = id).get(isbn = isbn</span><span class="s0">, </span><span class="s1">delete_flag = </span><span class="s2">0</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">book = models.Books.objects.get(isbn = isbn</span><span class="s0">, </span><span class="s1">delete_flag = </span><span class="s2">0</span><span class="s1">)</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s0">return </span><span class="s1">isbn</span>
+        <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">&quot;ISBN already exists on the Database.&quot;</span><span class="s1">)</span>
+  
+<span class="s0">class </span><span class="s1">SaveStudent(forms.ModelForm):</span>
+    <span class="s1">code = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">first_name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">middle_name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s0">, </span><span class="s1">required= </span><span class="s0">False</span><span class="s1">)</span>
+    <span class="s1">last_name = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">gender = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">contact = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">email = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">department = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">course = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">address = forms.Textarea()</span>
+    <span class="s1">status = forms.CharField(max_length=</span><span class="s2">2</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">model = models.Students</span>
+        <span class="s1">fields = (</span><span class="s3">'code'</span><span class="s0">, </span><span class="s3">'first_name'</span><span class="s0">, </span><span class="s3">'middle_name'</span><span class="s0">, </span><span class="s3">'last_name'</span><span class="s0">, </span><span class="s3">'gender'</span><span class="s0">, </span><span class="s3">'contact'</span><span class="s0">, </span><span class="s3">'email'</span><span class="s0">, </span><span class="s3">'address'</span><span class="s0">, </span><span class="s3">'department'</span><span class="s0">, </span><span class="s3">'course'</span><span class="s0">, </span><span class="s3">'status'</span><span class="s0">, </span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_code(self):</span>
+        <span class="s1">id = int(self.data[</span><span class="s3">'id'</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">(self.data[</span><span class="s3">'id'</span><span class="s1">]).isnumeric() </span><span class="s0">else </span><span class="s2">0</span>
+        <span class="s1">code = self.cleaned_data[</span><span class="s3">'code'</span><span class="s1">]</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">id &gt; </span><span class="s2">0</span><span class="s1">:</span>
+                <span class="s1">book = models.Books.objects.exclude(id = id).get(code = code</span><span class="s0">, </span><span class="s1">delete_flag = </span><span class="s2">0</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">book = models.Books.objects.get(code = code</span><span class="s0">, </span><span class="s1">delete_flag = </span><span class="s2">0</span><span class="s1">)</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s0">return </span><span class="s1">code</span>
+        <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">&quot;Student School Id already exists on the Database.&quot;</span><span class="s1">)</span>
+    
+<span class="s0">class </span><span class="s1">SaveBorrow(forms.ModelForm):</span>
+    <span class="s1">student = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">book = forms.CharField(max_length=</span><span class="s2">250</span><span class="s1">)</span>
+    <span class="s1">borrowing_date = forms.DateField()</span>
+    <span class="s1">return_date = forms.DateField()</span>
+    <span class="s1">status = forms.CharField(max_length=</span><span class="s2">2</span><span class="s1">)</span>
+
+    <span class="s0">class </span><span class="s1">Meta:</span>
+        <span class="s1">model = models.Borrow</span>
+        <span class="s1">fields = (</span><span class="s3">'student'</span><span class="s0">, </span><span class="s3">'book'</span><span class="s0">, </span><span class="s3">'borrowing_date'</span><span class="s0">, </span><span class="s3">'return_date'</span><span class="s0">, </span><span class="s3">'status'</span><span class="s0">, </span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">clean_student(self):</span>
+        <span class="s1">student = int(self.data[</span><span class="s3">'student'</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">(self.data[</span><span class="s3">'student'</span><span class="s1">]).isnumeric() </span><span class="s0">else </span><span class="s2">0</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">student = models.Students.objects.get(id = student)</span>
+            <span class="s0">return </span><span class="s1">student</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">&quot;Invalid student.&quot;</span><span class="s1">)</span>
+            
+    <span class="s0">def </span><span class="s1">clean_book(self):</span>
+        <span class="s1">book = int(self.data[</span><span class="s3">'book'</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">(self.data[</span><span class="s3">'book'</span><span class="s1">]).isnumeric() </span><span class="s0">else </span><span class="s2">0</span>
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">book = models.Books.objects.get(id = book)</span>
+            <span class="s0">return </span><span class="s1">book</span>
+        <span class="s0">except</span><span class="s1">:</span>
+            <span class="s0">raise </span><span class="s1">forms.ValidationError(</span><span class="s3">&quot;Invalid Book.&quot;</span><span class="s1">)</span>
+</pre>
+</body>
+</html>

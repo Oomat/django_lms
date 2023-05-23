@@ -1,0 +1,77 @@
+<html>
+<head>
+<title>urls.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+urls.py</font>
+</center></td></tr></table>
+<pre><span class="s0">from </span><span class="s1">django.contrib </span><span class="s0">import </span><span class="s1">admin</span>
+<span class="s0">from </span><span class="s1">django.urls </span><span class="s0">import </span><span class="s1">path</span><span class="s0">,</span><span class="s1">include</span>
+<span class="s0">from </span><span class="s1">. </span><span class="s0">import </span><span class="s1">views</span>
+<span class="s0">from </span><span class="s1">django.contrib.auth </span><span class="s0">import </span><span class="s1">views </span><span class="s0">as </span><span class="s1">auth_views</span>
+<span class="s0">from </span><span class="s1">django.views.generic.base </span><span class="s0">import </span><span class="s1">RedirectView</span>
+
+<span class="s0">from </span><span class="s1">django.conf </span><span class="s0">import </span><span class="s1">settings</span>
+<span class="s0">from </span><span class="s1">django.conf.urls.static </span><span class="s0">import </span><span class="s1">static</span>
+
+<span class="s1">urlpatterns = [</span>
+    <span class="s1">path(</span><span class="s2">''</span><span class="s0">,</span><span class="s1">views.home</span><span class="s0">, </span><span class="s1">name=</span><span class="s2">&quot;home-page&quot;</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'login'</span><span class="s0">,</span><span class="s1">views.login_page</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'login-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'register'</span><span class="s0">,</span><span class="s1">views.userregister</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'register-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'save_register'</span><span class="s0">,</span><span class="s1">views.save_register</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'register-user'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'user_login'</span><span class="s0">,</span><span class="s1">views.login_user</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'login-user'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'home'</span><span class="s0">,</span><span class="s1">views.home</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'home-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'reader'</span><span class="s0">,</span><span class="s1">views.reader</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'reader-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'logout'</span><span class="s0">,</span><span class="s1">views.logout_user</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'logout'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'profile'</span><span class="s0">,</span><span class="s1">views.profile</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'profile-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'update_password'</span><span class="s0">,</span><span class="s1">views.update_password</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'update-password'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'update_profile'</span><span class="s0">,</span><span class="s1">views.update_profile</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'update-profile'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'users'</span><span class="s0">,</span><span class="s1">views.users</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'user-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_user'</span><span class="s0">,</span><span class="s1">views.manage_user</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-user'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_user/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.manage_user</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-user-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'save_user'</span><span class="s0">,</span><span class="s1">views.save_user</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'save-user'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'delete_user/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.delete_user</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'delete-user'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'category'</span><span class="s0">,</span><span class="s1">views.category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'category-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_category'</span><span class="s0">,</span><span class="s1">views.manage_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-category'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_category/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.manage_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-category-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'view_category/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.view_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'view-category-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'save_category'</span><span class="s0">,</span><span class="s1">views.save_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'save-category'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'delete_category/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.delete_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'delete-category'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'sub_category'</span><span class="s0">,</span><span class="s1">views.sub_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'sub_category-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_sub_category'</span><span class="s0">,</span><span class="s1">views.manage_sub_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-sub_category'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_sub_category/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.manage_sub_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-sub_category-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'view_sub_category/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.view_sub_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'view-sub_category-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'save_sub_category'</span><span class="s0">,</span><span class="s1">views.save_sub_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'save-sub_category'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'delete_sub_category/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.delete_sub_category</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'delete-sub_category'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'books'</span><span class="s0">,</span><span class="s1">views.books</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'book-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_book'</span><span class="s0">,</span><span class="s1">views.manage_book</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-book'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_book/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.manage_book</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-book-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'view_book/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.view_book</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'view-book-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'save_book'</span><span class="s0">,</span><span class="s1">views.save_book</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'save-book'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'delete_book/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.delete_book</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'delete-book'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'students'</span><span class="s0">,</span><span class="s1">views.students</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'student-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_student'</span><span class="s0">,</span><span class="s1">views.manage_student</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-student'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_student/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.manage_student</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-student-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'view_student/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.view_student</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'view-student-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'save_student'</span><span class="s0">,</span><span class="s1">views.save_student</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'save-student'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'delete_student/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.delete_student</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'delete-student'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'borrows'</span><span class="s0">,</span><span class="s1">views.borrows</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'borrow-page'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_borrow'</span><span class="s0">,</span><span class="s1">views.manage_borrow</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-borrow'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'manage_borrow/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.manage_borrow</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'manage-borrow-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'view_borrow/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.view_borrow</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'view-borrow-pk'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'save_borrow'</span><span class="s0">,</span><span class="s1">views.save_borrow</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'save-borrow'</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">path(</span><span class="s2">'delete_borrow/&lt;int:pk&gt;'</span><span class="s0">,</span><span class="s1">views.delete_borrow</span><span class="s0">,</span><span class="s1">name=</span><span class="s2">'delete-borrow'</span><span class="s1">)</span><span class="s0">,</span>
+
+<span class="s1">]+ static(settings.MEDIA_URL</span><span class="s0">, </span><span class="s1">document_root = settings.MEDIA_ROOT)</span>
+</pre>
+</body>
+</html>
